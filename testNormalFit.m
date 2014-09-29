@@ -21,19 +21,20 @@ AllTrain = All(2001:end,:);
 y = AllTrain(:,end);
 %don't include cover types col in features
 AllTrain = AllTrain(:,1:NumFeatures);
+%OneCol = AllTrain(:,1);
+%AllTrain = normc(AllTrain);
+
+SIGMA = cov(AllTrain);
+%find mean of each row
+MU = mean(AllTrain);
+%find giant normal dist
+npdf = mvnpdf(AllTrain,MU,SIGMA);
+plot(npdf);
 
 
-TrainingDataSet = prtDataSetClass(AllTrain,y);
-TestDataSet = prtDataSetClass(AllTest,z);
 
-classifier = prtClassMap;               % Create a classifier
-disp('classifier created');
-classifier = classifier.train(TrainingDataSet);    % Train
-disp('training done');
-classified = run(classifier, TestDataSet);         % Test
-disp('testing done');
 
-%subplot(2,1,1); classifier.plot;  % Plot results
-%subplot(2,1,2); 
-prtScoreRoc(classified,TestDataSet);
-%set(get(gca,'Children'), 'LineWidth',3)
+
+
+
+

@@ -2,29 +2,35 @@ clear all;
 close all;
 format compact;
 clc;
-NumFeatures = 1;
+
 %import all data except the labels and id#s
 All = csvread('data/training.csv',1,1);
-%only use some of the features (cols)
-All(:,NumFeatures+1:54) = [];
-
-%make the first half of data test data
-AllTest = All(1:2000,:);
-%make a vector of the cover types for test data
-z = AllTest(:,end);
-%don't include cover types col in features
-AllTest = AllTest(:,1:NumFeatures);
-
-%make second half the training data
-AllTrain = All(2001:end,:);
+newWildCol = [];
+newSoilCol = [];
+wildCols = All(:,11:14);
+soilCols = All(:,15:54);
+for i = 1:1:length(wildCols)
+    newWildCol(i) = find( wildCols(i,:) );
+end
+for i = 1:1:length(soilCols)
+    newSoilCol(i) = find( soilCols(i,:) );
+end
+newWildCol = newWildCol';
+newSoilCol = newSoilCol';
+%delete binary data
+All(:,11:54) = [];
 %make a vector of the cover types for train data
-y = AllTrain(:,end);
+y = All(:,end);
 %don't include cover types col in features
-AllTrain = AllTrain(:,1:NumFeatures);
+All = All(:,1:10);
+All = [All,newWildCol,newSoilCol];
+
+ds = prtDataSetClass(All,y);
 
 
-TrainingDataSet = prtDataSetClass(AllTrain,y);
-TestDataSet = prtDataSetClass(AllTest,z);
+
+%TrainingDataSet = prtDataSetClass(AllTrain,y);
+%TestDataSet = prtDataSetClass(AllTest,z);
 
 %test m-ary classification
 
@@ -34,14 +40,14 @@ disp('classifier set');
 
 % Set the internal Decider
 classifier.internalDecider = prtDecisionMap;
-
-classifier = classifier.train(TrainingDataSet);    % Train
+dsOut = classifier.kfolds(ds,3);
+%classifier = classifier.train(DS);    % Train
 disp('training done');
-classes = run(classifier, TestDataSet);         % Test
-disp('testing done');
+
+
+%classes = run(classifier, TestDataSet);         % Test
+%disp('testing done');
 % print results - compare test predictions and actual test targets
-percentCorr = prtScorePercentCorrect(classes.getX,TestDataSet.getTargets)
-classifier.plot;
-
-
+percentCorr = prtScorePercentCorrect(dsOut)
+%classifier.plot;
 

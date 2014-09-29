@@ -2,7 +2,7 @@ clear all;
 close all;
 format compact;
 clc;
-NumFeatures = 1;
+NumFeatures = 10;
 %import all data except the labels and id#s
 All = csvread('data/training.csv',1,1);
 %only use some of the features (cols)
@@ -26,14 +26,22 @@ AllTrain = AllTrain(:,1:NumFeatures);
 TrainingDataSet = prtDataSetClass(AllTrain,y);
 TestDataSet = prtDataSetClass(AllTest,z);
 
-classifier = prtClassMap;               % Create a classifier
-disp('classifier created');
+
+classifier = prtClassBinaryToMaryOneVsAll;   % Create a classifier
+classifier.baseClassifier = prtClassMap;    % Set the binary classifier 
+disp('classifier set');
+
+% Set the internal Decider
+classifier.internalDecider = prtDecisionMap;
+
 classifier = classifier.train(TrainingDataSet);    % Train
 disp('training done');
-classified = run(classifier, TestDataSet);         % Test
+classes = run(classifier, TestDataSet);         % Test
 disp('testing done');
+% print results - compare test predictions and actual test targets
+percentCorr = prtScorePercentCorrect(classes.getX,TestDataSet.getTargets)
 
-%subplot(2,1,1); classifier.plot;  % Plot results
-%subplot(2,1,2); 
-prtScoreRoc(classified,TestDataSet);
-%set(get(gca,'Children'), 'LineWidth',3)
+%classifier.plot;
+
+
+
